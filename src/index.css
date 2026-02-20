@@ -1,0 +1,29 @@
+:root {
+    --color-primary: #002147; /* Azul UDB */
+    --color-secondary: #0000FF; /* Azul Institucional imagen */
+    --color-background: #FFFFFF;
+    --color-surface: #F8F9FA;
+    --color-text-main: #333333;
+    --color-border: #E0E0E0;
+    --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--color-surface);
+  }
+  
+  .btn-primary {
+    background-color: var(--color-secondary);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: opacity 0.2s;
+  }
+  
+  .btn-primary:hover { opacity: 0.9; }
