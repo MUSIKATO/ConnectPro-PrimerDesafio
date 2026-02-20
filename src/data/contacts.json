@@ -1,0 +1,5 @@
+[
+    { "id": 1, "nombre": "Sarah", "apellido": "Jenkins", "telefono": "+1 (555) 123-4567", "favorito": true },
+    { "id": 2, "nombre": "Michael", "apellido": "Chen", "telefono": "+1 (555) 987-6543", "favorito": true },
+    { "id": 3, "nombre": "Alice", "apellido": "Rodriguez", "telefono": "+1 (555) 443-2211", "favorito": false }
+  ]
