@@ -1,0 +1,25 @@
+{
+  "contactos": [
+    {
+      "nombre": "Julian Andres",
+      "apellido": "Santacruz Palomino",
+      "telefono": "+57 77974908",
+      "id": 1771616147511,
+      "favorito": false
+    },
+    {
+      "nombre": "Vladimir ",
+      "apellido": "Aguila",
+      "telefono": "+503 70479005",
+      "id": 1771616225486,
+      "favorito": false
+    },
+    {
+      "nombre": "Danilo",
+      "apellido": "velado",
+      "telefono": "+503 78085293",
+      "id": 1771616270250,
+      "favorito": false
+    }
+  ]
+}
