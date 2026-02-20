@@ -1,6 +1,6 @@
 import { useState, Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
-import { ChevronUpDownIcon, CheckIcon } from '@heroicons/react/20/solid';
+import { CheckIcon } from '@heroicons/react/20/solid';
 import type { ContactType } from '../types/contact';
 import { countryList, type Country } from '../data/countries';
 
@@ -132,9 +132,7 @@ export const AddContactView = ({ isOpen, onClose, onSave }: AddContactProps) => 
                                                         />
                                                         <span className="text-base font-medium text-slate-700 block truncate">{selectedCountry.code}</span>
                                                     </span>
-                                                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                        <ChevronUpDownIcon className="h-5 w-5 text-slate-400" aria-hidden="true" />
-                                                    </span>
+                                                
                                                 </Listbox.Button>
 
                                                 <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">

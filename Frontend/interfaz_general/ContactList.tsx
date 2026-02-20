@@ -14,79 +14,107 @@ interface ContactListProps {
   onToggleFavorite: (id: number) => void;
   /** Callback para eliminar un contacto de la lista */
   onDelete: (id: number) => void;
+  /** Callback para quitar todos los favoritos */
+  onClearAll?: () => void;
+  /** Callback para eliminar todos los contactos no favoritos */
+  onClearOthers?: () => void;
 }
 
 /**
  * Componente encargado de orquestar la visualización de los contactos.
- * Realiza el filtrado en tiempo real y divide la lista en categorías 
- * (Favoritos y Todos los contactos).
  */
 export const ContactList = ({ 
   searchTerm, 
   contacts, 
   onToggleFavorite, 
-  onDelete 
+  onDelete,
+  onClearAll,
+  onClearOthers
 }: ContactListProps) => {
 
-  /**
-   * logica de filtrado:
-   * Comparamos el término de búsqueda con el nombre y apellido.
-   * Se convierte todo a minúsculas para que la búsqueda no sea sensible a mayúsculas.
-   */
+  /** Lógica de filtrado */
   const filteredContacts = contacts.filter(c => 
     c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
     c.apellido.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  /**
-   * CLASIFICACIÓN:
-   * Separamos los contactos ya filtrados en dos grupos para la interfaz.
-   */
+  /** CLASIFICACIÓN */
   const favorites = filteredContacts.filter(c => c.favorito);
   const others = filteredContacts.filter(c => !c.favorito);
 
   return (
-    <div className="p-8 space-y-8">
-      {/* SECCIÓN FAVORITOS: 
-        Solo se renderiza si existen contactos marcados como favoritos 
-        que coincidan con la búsqueda.
-      */}
+    <div className="p-8 space-y-10">
+      
+      {/* SECCIÓN FAVORITOS */}
       {favorites.length > 0 && (
-        <section>
-          <h2 className="text-xs font-bold uppercase text-gray-400 mb-4 tracking-widest">
-            Favoritos
-          </h2>
+        <section className="animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center justify-between mb-5 border-b border-yellow-200 pb-2">
+            <h2 className="text-sm font-black uppercase text-slate-700 tracking-widest flex items-center gap-2">
+              <span className="text-yellow-500 text-lg"></span> 
+              Favoritos
+            </h2>
+
+            <div className="flex items-center gap-4">
+              {onClearAll && (
+                <button 
+                  onClick={onClearAll}
+                  className="group flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-600 transition-colors uppercase tracking-wider"
+                >
+                  <span className="material-symbols-outlined text-sm">delete_sweep</span>
+                  Eliminar todos
+                </button>
+              )}
+              <span className="bg-yellow-100 text-yellow-700 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm border border-yellow-200">
+                {favorites.length} {favorites.length === 1 ? 'DESTACADO' : 'DESTACADOS'}
+              </span>
+            </div>
+          </div>
+          
           <div className="grid gap-3">
             {favorites.map(c => (
-              <Contact 
-                key={c.id} 
-                contact={c} 
-                onToggleFavorite={onToggleFavorite} 
-                onDelete={onDelete} 
-              />
+              <Contact key={c.id} contact={c} onToggleFavorite={onToggleFavorite} onDelete={onDelete} />
             ))}
           </div>
         </section>
       )}
       
-      {/* LISTA GENERAL:
-        Muestra todos los contactos que no son favoritos. 
-        Usa un diseño de lista dividida con bordes redondeados.
-      */}
+      {/* LISTA GENERAL */}
       <section>
-        <h2 className="text-xs font-bold uppercase text-gray-400 mb-4 tracking-widest">
-          Todos los contactos
-        </h2>
-        <div className="bg-white rounded-xl border divide-y overflow-hidden">
+        <div className="flex items-center justify-between mb-5 border-b border-blue-200 pb-2">
+          <h2 className="text-sm font-black uppercase text-slate-700 tracking-widest">
+            Todos los contactos
+          </h2>
+          
+          <div className="flex items-center gap-4">
+            {onClearOthers && others.length > 0 && (
+              <button 
+                onClick={onClearOthers}
+                className="group flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-600 transition-colors uppercase tracking-wider"
+              >
+                <span className="material-symbols-outlined text-sm">delete_sweep</span>
+                Eliminar todos
+              </button>
+            )}
+            <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm border border-blue-100 uppercase">
+              {others.length} {others.length === 1 ? 'Total' : 'Total'}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid gap-3">
           {others.map(c => (
-            <Contact 
-              key={c.id} 
-              contact={c} 
-              onToggleFavorite={onToggleFavorite} 
-              onDelete={onDelete} 
-            />
+            <Contact key={c.id} contact={c} onToggleFavorite={onToggleFavorite} onDelete={onDelete} />
           ))}
         </div>
+
+        {filteredContacts.length === 0 && (
+          <div className="text-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100">
+            <span className="material-symbols-outlined text-slate-300 text-5xl mb-3">person_search</span>
+            <p className="text-slate-400 font-medium text-sm">
+              No se encontraron contactos para "{searchTerm}"
+            </p>
+          </div>
+        )}
       </section>
     </div>
   );

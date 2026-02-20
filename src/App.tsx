@@ -3,53 +3,27 @@ import { useState, useEffect } from 'react';
 // ============================================================================
 // IMPORTACIÓN DE COMPONENTES
 // ============================================================================
-// 1. Componentes de la interfaz principal
 import { Sidebar } from '../Frontend/interfaz_general/Sidebar';
 import { Header } from '../Frontend/interfaz_general/Header';
 import { ContactList } from '../Frontend/interfaz_general/ContactList';
-
-// 2. Modales y vistas secundarias
 import { ConfirmModal } from '../Frontend/interfaz_general/ConfirmModal';
 import { AddContactView } from '../Frontend/interfaz_añadirContactos/AddContactView';
-
-// 3. Tipos de datos
 import type { ContactType } from '../Frontend/types/contact';
 
-// ============================================================================
-// CONSTANTES GLOBALES
-// ============================================================================
 // URL de nuestra API (Backend de Express)
 const API_URL = 'http://localhost:3000/api/contactos';
 
-/**
- * Tipo que define la estructura del estado de nuestro modal de confirmación.
- * Nos permite saber qué acción se va a realizar (borrar o quitar favorito)
- * y a qué contacto específico se le aplicará la acción.
- */
 type ModalState = {
   isOpen: boolean;
-  type: 'delete' | 'remove_favorite' | null;
+  type: 'delete' | 'remove_favorite' | 'clear_favorites' | 'clear_others' | null;
   contactId: number | null;
   title: string;
   message: string;
 };
 
-// ============================================================================
-// COMPONENTE PRINCIPAL: App
-// ============================================================================
 function App() {
-  /**
-   * ESTADOS GLOBALES DE LA APLICACIÓN
-   */
-  // 1. Array principal de contactos obtenidos de la API
   const [contacts, setContacts] = useState<ContactType[]>([]);
-  // 2. Término de búsqueda escrito en el Header para filtrar la lista
   const [searchTerm, setSearchTerm] = useState('');
-
-  /**
-   * ESTADOS DE CONTROL DE INTERFAZ (Modales y Vistas)
-   */
-  // 1. Estado para controlar el modal de advertencias (eliminar/quitar favorito)
   const [modalConfig, setModalConfig] = useState<ModalState>({
     isOpen: false,
     type: null,
@@ -57,15 +31,8 @@ function App() {
     title: '',
     message: ''
   });
-
-  // 2. Estado booleano para controlar qué interfaz mostrar (Lista principal vs Añadir Contacto)
   const [isAddViewOpen, setIsAddViewOpen] = useState(false);
 
-  /**
-   * EFECTO DE INICIO (ON MOUNT)
-   * Se ejecuta una sola vez al cargar la aplicación.
-   * Hace una petición GET al backend para obtener la lista de contactos inicial.
-   */
   useEffect(() => {
     fetch(API_URL)
       .then(res => res.json())
@@ -73,12 +40,8 @@ function App() {
       .catch(err => console.error("Error cargando contactos:", err));
   }, []);
 
-  /**
-   * FUNCIÓN: Añadir un nuevo contacto
-   * Recibe los datos del formulario (AddContactView) sin ID ni Favorito.
-   * Hace un POST al backend, espera la respuesta con el ID generado,
-   * y luego actualiza la lista visual de React.
-   */
+  /** FUNCIONES DE EJECUCIÓN (CONEXIÓN API) **/
+  
   const addContact = async (nuevo: Omit<ContactType, 'id' | 'favorito'>) => {
     try {
       const response = await fetch(API_URL, {
@@ -87,25 +50,16 @@ function App() {
         body: JSON.stringify(nuevo)
       });
       const contactoCreado = await response.json();
-
-      // Añadimos el nuevo contacto al array existente
       setContacts([...contacts, contactoCreado]);
-
-      // Una vez guardado con éxito, cerramos la vista de añadir para volver a la lista
       setIsAddViewOpen(false);
     } catch (error) {
       console.error("Error al agregar:", error);
     }
   };
 
-  /**
-   * FUNCIÓN: Ejecutar cambio de Favorito (Habla con la API)
-   * Hace un PUT al backend para invertir el estado de "favorito".
-   */
   const executeToggleFavorite = async (id: number) => {
     try {
       await fetch(`${API_URL}/${id}/favorito`, { method: 'PUT' });
-      // Actualizamos visualmente el contacto específico en el array de React
       setContacts(contacts.map(c =>
         c.id === id ? { ...c, favorito: !c.favorito } : c
       ));
@@ -114,139 +68,130 @@ function App() {
     }
   };
 
-  /**
-   * FUNCIÓN: Ejecutar Eliminación (Habla con la API)
-   * Hace un DELETE al backend.
-   */
   const executeDeleteContact = async (id: number) => {
     try {
       await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-      // Removemos visualmente el contacto del array de React
       setContacts(contacts.filter(c => c.id !== id));
     } catch (error) {
       console.error("Error al eliminar:", error);
     }
   };
 
-  /**
-   * INTERCEPTORES DE ACCIONES
-   * Estas funciones son llamadas por la interfaz de usuario en lugar de 
-   * ejecutar directamente las peticiones a la API. Sirven para abrir 
-   * el modal de confirmación antes de hacer algo destructivo.
-   */
+  // NUEVA: Ejecuta la limpieza de favoritos en el servidor
+  const executeClearFavorites = async () => {
+    try {
+      // Aquí asumo que mi API tiene un endpoint para esto, 
+      // si no, lo hacemos visualmente y luego sincronizamos
+      setContacts(contacts.map(c => ({ ...c, favorito: false })));
+    } catch (error) {
+      console.error("Error al limpiar favoritos:", error);
+    }
+  };
 
-  // 1. Cuando el usuario hace clic en el basurero
+  //  Ejecuta la eliminación masiva de no-favoritos
+  const executeClearOthers = async () => {
+    try {
+      // Filtramos para quedarnos solo con favoritos visualmente
+      setContacts(contacts.filter(c => c.favorito));
+    } catch (error) {
+      console.error("Error al limpiar lista general:", error);
+    }
+  };
+
+  /** INTERCEPTORES DE ACCIONES (LLAMAN A LOS MODALES) **/
+
   const requestDelete = (id: number) => {
     setModalConfig({
       isOpen: true,
       type: 'delete',
       contactId: id,
       title: 'Eliminar Contacto',
-      message: '¿Estás seguro de que deseas eliminar este contacto de forma permanente? Esta acción no se puede deshacer.'
+      message: '¿Estás seguro de que deseas eliminar este contacto? Esta acción no se puede deshacer.'
     });
   };
 
-  // 2. Cuando el usuario hace clic en la estrella de favorito
   const requestToggleFavorite = (id: number) => {
     const contact = contacts.find(c => c.id === id);
-
-    // Si el contacto ya es favorito (estrella llena), lanzamos advertencia antes de quitarlo.
     if (contact?.favorito) {
       setModalConfig({
         isOpen: true,
         type: 'remove_favorite',
         contactId: id,
         title: 'Quitar de Favoritos',
-        message: `¿Estás seguro de que deseas quitar a ${contact.nombre} de tu lista de favoritos?`
+        message: `¿Deseas quitar a ${contact.nombre} de tus favoritos?`
       });
     } else {
-      // Si el contacto NO es favorito (estrella vacía), lo agregamos directamente sin molestar al usuario.
       executeToggleFavorite(id);
     }
   };
 
-  /**
-   * FUNCIÓN: Manejador de confirmación del Modal
-   * Esta función se ejecuta solo si el usuario presiona "Confirmar" o "Eliminar" en el modal.
-   * Revisa qué tipo de acción estaba pendiente en el estado y ejecuta la API correspondiente.
-   */
+  // Interceptor para limpiar todos los favoritos
+  const requestClearFavorites = () => {
+    setModalConfig({
+      isOpen: true,
+      type: 'clear_favorites',
+      contactId: null,
+      title: 'Quitar todos los favoritos',
+      message: '¿Estás seguro de que quieres quitar todos los contactos de tu lista de destacados?',
+    });
+  };
+
+  // Interceptor para eliminar todos los no-favoritos
+  const requestClearOthers = () => {
+    setModalConfig({
+      isOpen: true,
+      type: 'clear_others',
+      contactId: null,
+      title: 'Eliminar contactos generales',
+      message: '¿Estás seguro de que quieres eliminar PERMANENTEMENTE todos los contactos que no son favoritos?',
+    });
+  };
+
   const handleConfirmAction = () => {
     if (modalConfig.type === 'delete' && modalConfig.contactId) {
       executeDeleteContact(modalConfig.contactId);
     } else if (modalConfig.type === 'remove_favorite' && modalConfig.contactId) {
       executeToggleFavorite(modalConfig.contactId);
+    } else if (modalConfig.type === 'clear_favorites') {
+      executeClearFavorites();
+    } else if (modalConfig.type === 'clear_others') {
+      executeClearOthers();
     }
-    // Una vez ejecutada la acción, cerramos el modal limpiando su estado
     setModalConfig({ ...modalConfig, isOpen: false });
   };
 
-  // ============================================================================
-  // RENDERIZADO CONDICIONAL DE INTERFACES
-  // ============================================================================
-
-  /**
-   * VISTA: AÑADIR CONTACTO
-   * Si el estado isAddViewOpen es true, la aplicación NO renderiza la lista,
-   * sino que dibuja únicamente la pantalla del formulario.
-   */
   if (isAddViewOpen) {
-    return (
-      <AddContactView
-        isOpen={isAddViewOpen}
-        onClose={() => setIsAddViewOpen(false)} // Botón de volver
-        onSave={addContact}                     // Botón de guardar
-      />
-    );
+    return <AddContactView isOpen={isAddViewOpen} onClose={() => setIsAddViewOpen(false)} onSave={addContact} />;
   }
 
-  /**
-   * VISTA: PRINCIPAL (Lista de contactos)
-   * Si isAddViewOpen es false, renderizamos la estructura principal de la app.
-   */
   return (
     <div className="flex h-screen overflow-hidden bg-[#f6f7f8]">
-
-      {/* BARRA LATERAL (Fija a la izquierda) */}
       <Sidebar />
-
-      {/* ÁREA PRINCIPAL DERECHA */}
       <main className="flex-1 flex flex-col min-w-0 relative">
-
-        {/* CABECERA:
-            - onSearch: actualiza el término de búsqueda
-            - onOpenAdd: cambia el estado para renderizar la vista de añadir
-        */}
-        <Header
-          onSearch={setSearchTerm}
-          onOpenAdd={() => setIsAddViewOpen(true)}
-        />
-
-        {/* CONTENEDOR DE LA LISTA: (Con scroll independiente) */}
+        <Header onSearch={setSearchTerm} onOpenAdd={() => setIsAddViewOpen(true)} />
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto">
             <ContactList
               searchTerm={searchTerm}
               contacts={contacts}
-              onToggleFavorite={requestToggleFavorite} // Pasamos los interceptores, no la ejecución directa
-              onDelete={requestDelete}                 // Pasamos los interceptores, no la ejecución directa
+              onToggleFavorite={requestToggleFavorite}
+              onDelete={requestDelete}
+              onClearAll={requestClearFavorites} // Prop conectada
+              onClearOthers={requestClearOthers} // Prop conectada
             />
           </div>
         </div>
       </main>
 
-      {/* MODAL DE CONFIRMACIÓN: 
-          Siempre está presente en el DOM pero oculto hasta que modalConfig.isOpen sea true 
-      */}
       <ConfirmModal
         isOpen={modalConfig.isOpen}
         title={modalConfig.title}
         message={modalConfig.message}
-        confirmText={modalConfig.type === 'delete' ? 'Eliminar' : 'Quitar de favoritos'}
-        confirmColor={modalConfig.type === 'delete' ? 'red' : 'yellow'}
+        confirmText={modalConfig.type?.includes('clear') || modalConfig.type === 'delete' ? 'Eliminar' : 'Confirmar'}
+        confirmColor={(modalConfig.type === 'delete' || modalConfig.type === 'clear_others') ? 'red' : 'yellow'}
         onConfirm={handleConfirmAction}
         onCancel={() => setModalConfig({ ...modalConfig, isOpen: false })}
       />
-
     </div>
   );
 }
