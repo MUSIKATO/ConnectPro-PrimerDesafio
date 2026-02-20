@@ -24,5 +24,7 @@ Aplicación para la administración de contactos desarrollada con React, TypeScr
 
 ## 🚀 Instalación y Ejecución
 1. Clonar el repositorio.
-2. Ejecutar `npm install` para instalar dependencias.
-3. Ejecutar `npm run dev` para iniciar el servidor de desarrollo.
+2. Ejecutar `npm install` para instalar dependencias de el proyecto.
+3. Ejecutar `npm install express cors` para instalar dependencias de el server en la carpeta backend.
+4. Ejecutar `node server.js` en la carpeta backend para iniciar el server.
+5. Ejecutar `npm run dev` en la carpeta principal para iniciar.
