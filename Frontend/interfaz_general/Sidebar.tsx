@@ -36,17 +36,17 @@ export const Sidebar = () => {
   };
 
   return (
-    <aside className="w-64 border-r border-gray-200 bg-white flex flex-col shrink-0 h-screen">
-
-      {/* LOGOTIPO Y BRANDING */}
+    // CAMBIO: hidden por defecto, flex solo en pantallas medianas (md)
+    <aside className="hidden md:flex md:w-64 border-r border-gray-200 bg-white flex-col shrink-0 h-screen">
+      {/* ... resto de tu código igual ... */}
       <div className="p-6 flex items-center gap-3">
-        <div className="bg-[#137fec] size-10 rounded-lg flex items-center justify-center text-white">
-          <span className="material-symbols-outlined">contacts</span>
-        </div>
-        <div>
-          <h1 className="font-bold text-lg">AgendaPro</h1>
-          <p className="text-xs text-gray-500">Tu Agenda Digital</p>
-        </div>
+         <div className="bg-[#137fec] size-10 rounded-lg flex items-center justify-center text-white">
+           <span className="material-symbols-outlined">contacts</span>
+         </div>
+         <div>
+           <h1 className="font-bold text-lg">AgendaPro</h1>
+           <p className="text-xs text-gray-500">Tu Agenda Digital</p>
+         </div>
       </div>
 
       {/* NAVEGACIÓN */}
@@ -87,3 +87,4 @@ export const Sidebar = () => {
     </aside>
   );
 };
+

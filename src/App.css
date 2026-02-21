@@ -1,16 +1,24 @@
 /**
- * Estilos globales y configuraciones base.
+ * Estilos globales corregidos para que la aplicación sea responsiva.
  */
 
  #root {
-
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  /* Quitamos el ancho máximo y el padding que cortaba la app */
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  text-align: left; /* Volvemos al alineado normal */
 }
 
-/* ESTILOS DE LOGOTIPOS  */
+/* Aseguramos que el body no tenga márgenes que empujen la app */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Evita el scroll horizontal en celulares */
+}
+
+/* Mantenemos tus logos por si los usas en algún lado */
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -18,37 +26,21 @@
   transition: filter 300ms;
 }
 
-/* Efectos de brillo al pasar el mouse por los logos */
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-
 @keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
-
 
 @media (prefers-reduced-motion: no-preference) {
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
-}
-
-/* CLASES DE UTILIDAD GENERAL */
-.card {
-  padding: 2em;
-}
-
-/* Estilo para textos secundarios o pies de página */
-.read-the-docs {
-  color: #888;
 }
