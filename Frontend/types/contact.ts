@@ -16,11 +16,7 @@ export interface ContactType {
     /** Número telefónico (almacenado como string para soportar formatos internacionales) */
     telefono: string;
     
-    /** * URL de la imagen de perfil del contacto.
-     * El símbolo '?' indica que esta propiedad es opcional.
-     */
-    imagen?: string; 
-    
+
     /** Estado que indica si el contacto ha sido marcado como favorito */
     favorito: boolean;
 }

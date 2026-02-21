@@ -10,6 +10,9 @@ import { ConfirmModal } from '../Frontend/interfaz_general/ConfirmModal';
 import { AddContactView } from '../Frontend/interfaz_añadirContactos/AddContactView';
 import type { ContactType } from '../Frontend/types/contact';
 
+// 👇 1. IMPORTACIÓN DEL JSON (Asegúrate de haber movido el archivo a esta carpeta)
+import contactsData from '../Frontend/data/contacts.json';
+
 // URL de nuestra API (Backend de Express)
 const API_URL = 'http://localhost:3000/api/contactos';
 
@@ -22,7 +25,8 @@ type ModalState = {
 };
 
 function App() {
-  const [contacts, setContacts] = useState<ContactType[]>([]);
+  // Accedemos directamente a la propiedad .contactos del JSON
+const [contacts, setContacts] = useState<ContactType[]>(contactsData.contactos as ContactType[]);  
   const [searchTerm, setSearchTerm] = useState('');
   const [modalConfig, setModalConfig] = useState<ModalState>({
     isOpen: false,
@@ -36,8 +40,14 @@ function App() {
   useEffect(() => {
     fetch(API_URL)
       .then(res => res.json())
-      .then(data => setContacts(data))
-      .catch(err => console.error("Error cargando contactos:", err));
+      .then(data => {
+        if (data && data.length > 0) {
+          setContacts(data);
+        }
+      })
+      .catch(() => { 
+        console.log("Servidor backend no detectado. Usando datos del JSON.");
+      });
   }, []);
 
   /** FUNCIONES DE EJECUCIÓN (CONEXIÓN API) **/
@@ -53,49 +63,44 @@ function App() {
       setContacts([...contacts, contactoCreado]);
       setIsAddViewOpen(false);
     } catch (error) {
-      console.error("Error al agregar:", error);
+      // Si falla (Netlify), igual lo agregamos a la lista visual para que no falle tu exposición
+      const tempId = Math.floor(Math.random() * 10000);
+      setContacts([...contacts, { ...nuevo, id: tempId, favorito: false }]);
+      setIsAddViewOpen(false);
+      console.error("Error al agregar (esto es normal en Netlify):", error);
     }
   };
 
   const executeToggleFavorite = async (id: number) => {
     try {
       await fetch(`${API_URL}/${id}/favorito`, { method: 'PUT' });
-      setContacts(contacts.map(c =>
-        c.id === id ? { ...c, favorito: !c.favorito } : c
-      ));
-    } catch (error) {
-      console.error("Error al cambiar favorito:", error);
+    } catch { 
+      // Al quitar "error", ESLint ya no tiene una variable que reclamar
+      console.error("Modo offline: Cambiando favorito solo visualmente");
     }
+    // Siempre lo hacemos visualmente para que funcione en Netlify
+    setContacts(contacts.map(c =>
+      c.id === id ? { ...c, favorito: !c.favorito } : c
+    ));
   };
 
   const executeDeleteContact = async (id: number) => {
     try {
       await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-      setContacts(contacts.filter(c => c.id !== id));
-    } catch (error) {
-      console.error("Error al eliminar:", error);
+    } catch { 
+      // Lo mismo aquí, dejamos el catch solo
+      console.error("Modo offline: Eliminando solo visualmente");
     }
+    // Siempre lo hacemos visualmente
+    setContacts(contacts.filter(c => c.id !== id));
   };
 
-  // NUEVA: Ejecuta la limpieza de favoritos en el servidor
   const executeClearFavorites = async () => {
-    try {
-      // Aquí asumo que mi API tiene un endpoint para esto, 
-      // si no, lo hacemos visualmente y luego sincronizamos
-      setContacts(contacts.map(c => ({ ...c, favorito: false })));
-    } catch (error) {
-      console.error("Error al limpiar favoritos:", error);
-    }
+    setContacts(contacts.map(c => ({ ...c, favorito: false })));
   };
 
-  //  Ejecuta la eliminación masiva de no-favoritos
   const executeClearOthers = async () => {
-    try {
-      // Filtramos para quedarnos solo con favoritos visualmente
-      setContacts(contacts.filter(c => c.favorito));
-    } catch (error) {
-      console.error("Error al limpiar lista general:", error);
-    }
+    setContacts(contacts.filter(c => c.favorito));
   };
 
   /** INTERCEPTORES DE ACCIONES (LLAMAN A LOS MODALES) **/
@@ -125,7 +130,6 @@ function App() {
     }
   };
 
-  // Interceptor para limpiar todos los favoritos
   const requestClearFavorites = () => {
     setModalConfig({
       isOpen: true,
@@ -136,7 +140,6 @@ function App() {
     });
   };
 
-  // Interceptor para eliminar todos los no-favoritos
   const requestClearOthers = () => {
     setModalConfig({
       isOpen: true,
@@ -176,8 +179,8 @@ function App() {
               contacts={contacts}
               onToggleFavorite={requestToggleFavorite}
               onDelete={requestDelete}
-              onClearAll={requestClearFavorites} // Prop conectada
-              onClearOthers={requestClearOthers} // Prop conectada
+              onClearAll={requestClearFavorites}
+              onClearOthers={requestClearOthers}
             />
           </div>
         </div>

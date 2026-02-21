@@ -21,7 +21,7 @@ export const countryList: Country[] = [
     { name: "República Dominicana", code: "+1-809", iso: "do", maxLength: 10 },
     { name: "Honduras", code: "+504", iso: "hn", maxLength: 8 },
     { name: "Paraguay", code: "+595", iso: "py", maxLength: 9 },
-    { name: "El Salvador", code: "+503", iso: "sv", maxLength: 8 }, // El Salvador son 8 dígitos
+    { name: "El Salvador", code: "+503", iso: "sv", maxLength: 8 }, 
     { name: "Nicaragua", code: "+505", iso: "ni", maxLength: 8 },
     { name: "Costa Rica", code: "+506", iso: "cr", maxLength: 8 },
     { name: "Panamá", code: "+507", iso: "pa", maxLength: 8 },
