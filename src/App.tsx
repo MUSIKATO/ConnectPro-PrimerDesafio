@@ -10,12 +10,12 @@ import { ConfirmModal } from '../Frontend/interfaz_general/ConfirmModal';
 import { AddContactView } from '../Frontend/interfaz_añadirContactos/AddContactView';
 import type { ContactType } from '../Frontend/types/contact';
 
-// 👇 1. IMPORTACIÓN DEL JSON (Asegúrate de haber movido el archivo a esta carpeta)
+// IMPORTACIÓN DE DATOS LOCALES: Respaldo en caso de que el backend no esté disponible.
 import contactsData from '../Frontend/data/contacts.json';
 
-// URL de nuestra API (Backend de Express)
+// CONFIGURACIÓN DE ENDPOINT: URL para la comunicación con el servidor Express.
 const API_URL = 'http://localhost:3000/api/contactos';
-
+// DEFINICIÓN DE TIPO: Para el control estricto de los estados del modal de confirmación.
 type ModalState = {
   isOpen: boolean;
   type: 'delete' | 'remove_favorite' | 'clear_favorites' | 'clear_others' | null;
@@ -25,7 +25,12 @@ type ModalState = {
 };
 
 function App() {
-  // Accedemos directamente a la propiedad .contactos del JSON
+  /**
+   * ESTADOS DE LA APLICACIÓN 
+   * contacts: Almacena la lista de contactos, inicializada desde el JSON local.
+   * searchTerm: Almacena la cadena de texto para el filtrado en tiempo real.
+   * modalConfig: Objeto que controla la visibilidad y el contenido de los mensajes de alerta.
+   */
 const [contacts, setContacts] = useState<ContactType[]>(contactsData.contactos as ContactType[]);  
   const [searchTerm, setSearchTerm] = useState('');
   const [modalConfig, setModalConfig] = useState<ModalState>({
@@ -36,7 +41,11 @@ const [contacts, setContacts] = useState<ContactType[]>(contactsData.contactos a
     message: ''
   });
   const [isAddViewOpen, setIsAddViewOpen] = useState(false);
-
+/**
+   * SINCRONIZACIÓN CON EL SERVIDOR 
+   * Se intenta recuperar los contactos del backend al cargar la app.
+   * Si falla en Netlify un ejempol se mantiene el estado inicial del JSON local
+   */
   useEffect(() => {
     fetch(API_URL)
       .then(res => res.json())
@@ -50,8 +59,13 @@ const [contacts, setContacts] = useState<ContactType[]>(contactsData.contactos a
       });
   }, []);
 
-  /** FUNCIONES DE EJECUCIÓN (CONEXIÓN API) **/
-  
+
+  /** * FUNCIONES DE PERSISTENCIA (CRUD)
+   * Estas funciones manejan la lógica de comunicación con la API y la actualización 
+   * del estado local para asegurar una respuesta visual inmediata ambientado a ui
+   */
+
+// Agregar contacto: Envía datos al servidor o genera un ID temporal si está offline.  
   const addContact = async (nuevo: Omit<ContactType, 'id' | 'favorito'>) => {
     try {
       const response = await fetch(API_URL, {
@@ -70,7 +84,7 @@ const [contacts, setContacts] = useState<ContactType[]>(contactsData.contactos a
       console.error("Error al agregar (esto es normal en Netlify):", error);
     }
   };
-
+// Alternar Favorito: Cambia el booleano  con favorito tanto en la DB como en el estado de React.
   const executeToggleFavorite = async (id: number) => {
     try {
       await fetch(`${API_URL}/${id}/favorito`, { method: 'PUT' });
@@ -83,15 +97,13 @@ const [contacts, setContacts] = useState<ContactType[]>(contactsData.contactos a
       c.id === id ? { ...c, favorito: !c.favorito } : c
     ));
   };
-
+// Eliminar Contacto: Filtra el array de contactos para removerlo visualmente.
   const executeDeleteContact = async (id: number) => {
     try {
       await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
     } catch { 
-      // Lo mismo aquí, dejamos el catch solo
       console.error("Modo offline: Eliminando solo visualmente");
     }
-    // Siempre lo hacemos visualmente
     setContacts(contacts.filter(c => c.id !== id));
   };
 
@@ -103,7 +115,9 @@ const [contacts, setContacts] = useState<ContactType[]>(contactsData.contactos a
     setContacts(contacts.filter(c => c.favorito));
   };
 
-  /** INTERCEPTORES DE ACCIONES (LLAMAN A LOS MODALES) **/
+ /** * CONTROLADORES DE INTERACCIÓN DE INTERCEPTORES
+   * Funciones que preparan el Modal de confirmación antes de ejecutar una acción crítica.
+   */
 
   const requestDelete = (id: number) => {
     setModalConfig({
@@ -150,6 +164,11 @@ const [contacts, setContacts] = useState<ContactType[]>(contactsData.contactos a
     });
   };
 
+  /**
+   * MANEJADOR DE CONFIRMACIÓN ÚNICO
+   * Centraliza la decisión del usuario en el modal para ejecutar la acción correspondiente.
+   */
+
   const handleConfirmAction = () => {
     if (modalConfig.type === 'delete' && modalConfig.contactId) {
       executeDeleteContact(modalConfig.contactId);
@@ -162,12 +181,13 @@ const [contacts, setContacts] = useState<ContactType[]>(contactsData.contactos a
     }
     setModalConfig({ ...modalConfig, isOpen: false });
   };
-
+// renderizado condiciona que Cambia el layout osea mi  principal por la vista de añadir contacto.
   if (isAddViewOpen) {
     return <AddContactView isOpen={isAddViewOpen} onClose={() => setIsAddViewOpen(false)} onSave={addContact} />;
   }
 
   return (
+    /* CONTENEDOR RAIZ: Layout principal con Flexbox */
     <div className="flex h-screen overflow-hidden bg-[#f6f7f8]">
       <Sidebar />
       <main className="flex-1 flex flex-col min-w-0 relative">
@@ -186,6 +206,7 @@ const [contacts, setContacts] = useState<ContactType[]>(contactsData.contactos a
         </div>
       </main>
 
+{/* ventana emergente  */}
       <ConfirmModal
         isOpen={modalConfig.isOpen}
         title={modalConfig.title}

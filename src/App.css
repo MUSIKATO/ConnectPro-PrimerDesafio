@@ -3,12 +3,11 @@
  */
 
  #root {
-  /* Quitamos el ancho máximo y el padding que cortaba la app */
   width: 100%;
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  text-align: left; /* Volvemos al alineado normal */
+  text-align: left; 
 }
 
 /* Aseguramos que el body no tenga márgenes que empujen la app */

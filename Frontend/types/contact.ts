@@ -13,7 +13,7 @@ export interface ContactType {
     /** Apellido o apellidos del contacto */
     apellido: string;
     
-    /** Número telefónico (almacenado como string para soportar formatos internacionales) */
+    /** Número telefónico  */
     telefono: string;
     
 
